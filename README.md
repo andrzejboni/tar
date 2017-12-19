@@ -17,85 +17,35 @@ Terminarz:
 
 ### :new: Konfiguracja usługi Code Climate
 
-1. Logujemy się na _codeclimate.com_, gdzie autoryzujemy konto z _github.com_;
-2. Logujemy się na _github.com_:
-   - wybieramy _my-rspec_ → _hello_rspec_user_ lub _mocking-hell-teamname_;
-   - wybieramy _Settings_ → _Integrations & services_ i wykonujemy _Add service_ → _CodeClimate_;
-   - uzupełniamy Token: _codeclimate.com/profile/tokens_ → dodajemy nazwę np. _GitHub_ →
-     kopiujemy token z _CodeClimate_ do _GitHub_ i klikamy _Update Service_
-3. Logujemy się na _codeclimate.org/dashboard_:
-   - klikamy _Sync now_;
-   - wybieramy odpowiednie repozytorium i klikamy przy nim _Add Repo_;
-
-<!--
-
-### TODO
-
-W celu wykonania dalszej konfiguracji, która polega na zaimplementowaniu _Test Coverage_ potrzebny jest program testowy.
-Sugeruję skopiować jeden z CodeQuizzes.
-
-- W naszym repozytorium mocking-hell wprowadzamy porządek folderów
-  znany nam z hello-rsepc (lib, spec).
-- Tworzymy plik Gemfile o treści:
-  ```ruby
-    source 'https://rubygems.org'
-
-    gem 'rspec', :group => :test
-    gem 'simplecov', :require => false, :group => :test
+1. Integrujemy nasze repozytorium z Code Climate:
+   - Logujemy się na _codeclimate.org/dashboard_:
+   - Wybieramy _Open Source_ i klikamy _Add Repo_ przy naszym repozytorium
+   - Klikamy _Sync now_;
+2. Przygotowujemy nasze repozytorium:
+   - Tworzymy plik _Gemfile_ ([przykład](https://github.com/my-rspec/hello-rspec-wbzyl/blob/master/Gemfile)) w którym wymagamy _simplecov_ oraz _rspec_
+   - Tworzymy plik _travis.yml_ ([przykład](https://github.com/my-rspec/hello-rspec-wbzyl/blob/master/.travis.yml)), gdzie _CC_TEST_REPORTER_ID_ to _TEST REPORTER ID_, który znajdujemy w zakładce _Test coverage_ w ustawieniach naszego repozytorium na Code Climate
+   UWAGA: Plik
+   ```yml
+   https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
    ```
-- Tworzymy plik _.travis.yml_ o treści:
-  ```yml
-  env:
-  global:
-    - CC_TEST_REPORTER_ID=TEST_REPORTER_ID
-  language: ruby
-  rvm:
-    - 2.4
-  before_script:
-    - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-    - chmod +x ./cc-test-reporter
-    - ./cc-test-reporter before-build
-  script:
-    - bundle install; rspec spec --format documentation
-  after_script:
-    - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
- ```
-  - Wchodzimy w nasze repozytorium na _codeclimate.com_.
-  - Klikamy na _Settings_ a następnie _Test coverage_.
-  - Kopiujemy _TEST REPORTER ID_ i wklejamy w miejsce tekstu w pliku _.travis.yml_.
+   jest odpalany na maszynie Travis CI operującej na systemie linux, więc nie należy zmieniać wersji reportera na używany przez nas system (np. Windows czy Mac OS)
 
-W katalogu _lib_ umieszczamy plik źródłowy programu testowego, a w katalogu
-_spec_ tworzymy plik (lub dopisujemy jeśli plik istnieje) _spec_helper.rb_ o treści:
-```ruby
-require 'simplecov'
-SimpleCov.start
+   Może się zdażyć, że zakładka _Settings_ jest niewidoczna. W takim przypadku próbujemy rozwiązań znajdujących się pod [tym linkiem](https://docs.codeclimate.com/v1.0/docs/missing-settings-link).
+   - Tworzymy plik _.rspec_ ([przykład](https://github.com/my-rspec/hello-rspec-wbzyl/blob/master/.rspec))
+   - Tworzymy katalogi _lib_ oraz _spec_
+   - W katalogu lib umieszczamy pliki źródłowe naszego programu
+   - Do katalogu _spec_ wklejamy pliki z testami
+   - W katalogu _spec_ tworzymy plik _spec_helper.rb_ ([przykład](https://github.com/my-rspec/hello-rspec-wbzyl/blob/master/spec/spec_helper.rb)), w którym kluczowe jest to aby
+   ```yml
+   require 'simplecov'
+   SimpleCov.start
+   ```
+   było zawsze na początku pliku, gdyż w przeciwnym wypadku analiza pokrycia testami się nie wykona lub będzie błędna
+3. Dodajemy plakietki Code Climate do naszego repozytorium:
+   - Wchodzimy w ustawienia repozytorium na Code Climate i wybieramy zakładkę _Badges_
+   - Wybieramy _Markdown_ i kopiujemy kod w odpowiednie miejsce naszego _README.md_
 
-require_relative '../lib/test'
-```
-
-1. Do katalogu _spec_ wklejamy plik z testem/testami rspec programu testowego i
-na jego początku umieszczamy wyłącznie _require 'spec_helper'_ (nie umieszczamy
-wymogu pliku źródłowego programu testowego).
-1. Po dokonaniu zmian w repozytorium i wykonaniu builda przez Travisa, Code
-Climate powinien otrzymać od Travisa raport i umieścić statystyki na temat _Test
-coverage_ na stronie naszego repozytorium na _codeclimate.com_. W celu
-umieszczenia odnośników do statusu w naszym README.md na GitHubie, wchodzimy w
-_Settings_ a następnie _Badges_, wybieramy Markdown i umieszczamy kod w naszym
-Readme (z jakiegoś powodu czasem zamiast obrazka tworzy się zwykłe hiperłącze).
-
-1. Naturalnie, kiedy zaczniemy już robić projekt, nazwy plików (_test.rb_,
-_test_spec.rb_) ulegną zmianie, a jeśli zajdzie potrzeba,
-możemy dodać kolejne gemy do pliku Gemfile. Należy jednak pamiętać o zachowaniu
-metodologii (dodawanie relatives do _spec_helper.rb_ i umieszczanie _require
-'spec_helper'_ na początku plików z testami). Kluczowe jest też to, aby w pliku
-_spec_helper.rb_ na początku zawsze znajdowało się
-```ruby
-require 'simplecov'
-SimpleCov.start
-```
-W przeciwnym wypadku funkcja badająca kod nie prześledzi testów i raport się nie wygeneruje lub będzie błędny.
--->
-
+Dziękuję za przygotowanie instrukcji T. Adamczykowi oraz P. Aszkielańcowi
 
 ### Konfiguracja usługi Travis CI
 
